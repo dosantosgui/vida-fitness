@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111418">
+  <title>Vida Fitness</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-180.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="atualizacao" class="aviso-topo oculto">Nova versão disponível. <button id="btn-atualizar">Atualizar</button></div>
+  <main id="app"></main>
+  <div id="timer" class="timer oculto">
+    <div class="timer-barra"><div id="timer-progresso"></div></div>
+    <div class="timer-linha">
+      <button class="timer-btn" data-timer="-15">−15s</button>
+      <div class="timer-centro"><div id="timer-rotulo">Descanso</div><div id="timer-tempo">0:00</div></div>
+      <button class="timer-btn" data-timer="15">+15s</button>
+      <button class="timer-btn" data-timer="pular">Pular</button>
+    </div>
+  </div>
+  <nav id="nav" class="nav">
+    <button data-tela="hoje">Hoje</button>
+    <button data-tela="semana">Semana</button>
+    <button data-tela="mais">Mais</button>
+  </nav>
+  <div id="toast" class="toast oculto"></div>
+  <script src="vendor/xlsx.mini.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
