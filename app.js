@@ -2,7 +2,7 @@
    O app NÃO cria nem altera treinos: só importa o plano e registra a execução. */
 'use strict';
 
-const VERSAO_APP = '1.0.1';
+const VERSAO_APP = '1.0.2';
 const DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const DIAS_LONGOS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 
@@ -746,7 +746,9 @@ async function iniciar() {
   rota();
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     try {
-      const reg = await navigator.serviceWorker.register('sw.js');
+      const reg = await navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' });
+      reg.update().catch(() => {});
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
       const avisar = (w) => { $('#atualizacao').classList.remove('oculto'); $('#btn-atualizar').onclick = () => w.postMessage('atualizar'); };
       if (reg.waiting && navigator.serviceWorker.controller) avisar(reg.waiting);
       reg.addEventListener('updatefound', () => {

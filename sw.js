@@ -1,5 +1,5 @@
 // Service worker: guarda o app no celular para funcionar sem internet.
-const VERSAO = 'vf-v2';
+const VERSAO = 'vf-v3';
 const ARQUIVOS = [
   './',
   './index.html',
@@ -14,7 +14,8 @@ const ARQUIVOS = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSAO).then((c) => c.addAll(ARQUIVOS)));
+  // cache: 'reload' busca sempre do servidor (sem pegar cópia velha do navegador).
+  e.waitUntil(caches.open(VERSAO).then((c) => c.addAll(ARQUIVOS.map((u) => new Request(u, { cache: 'reload' })))));
 });
 
 self.addEventListener('activate', (e) => {
