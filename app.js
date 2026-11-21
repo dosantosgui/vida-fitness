@@ -2,7 +2,7 @@
    O app NÃO cria nem altera treinos: só importa o plano e registra a execução. */
 'use strict';
 
-const VERSAO_APP = '1.0.0';
+const VERSAO_APP = '1.0.1';
 const DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const DIAS_LONGOS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 
@@ -634,7 +634,9 @@ function telaMais() {
       <p class="suave">${nM} séries e ${nC} corridas registradas. ${E.ultimoBackup ? `Último backup: ${new Date(E.ultimoBackup).toLocaleDateString('pt-BR')}.` : 'Nenhum backup ainda.'}</p>
       <button class="btn-primario btn-largo" id="b-backup">Fazer backup</button>
       <label for="f-restaurar">Restaurar backup (.json)</label><input type="file" id="f-restaurar" accept=".json,application/json">
-      <p class="mini">Guarde o backup fora do celular (Drive, email). Restaurar substitui tudo o que está no app.</p></div>
+      <p class="mini">Guarde o backup fora do celular (Drive, email). Restaurar substitui tudo o que está no app.</p>
+      <div style="height:8px"></div><button class="btn-perigo btn-largo" id="b-zerar">Apagar todos os registros</button>
+      <p class="mini">Use para limpar treinos de teste. O plano fica.</p></div>
     <div class="card"><h3>Exportar registros (CSV)</h3>
       <div class="grade2"><button id="b-csv-m">Musculação</button><button id="b-csv-c">Corrida</button></div>
       <p class="mini">Mesmas colunas das abas Registro_* da planilha.</p></div>
@@ -665,6 +667,13 @@ function telaMais() {
     } catch (err) { alert('Não consegui importar:\n\n' + err.message); e.target.value = ''; }
   });
   $('#b-backup').addEventListener('click', fazerBackup);
+  $('#b-zerar').addEventListener('click', async () => {
+    if (!confirm('Apagar TODAS as séries e corridas registradas? O plano continua. Não dá para desfazer.')) return;
+    if (!confirm('Confirma mesmo? Faça um backup antes se tiver dados reais.')) return;
+    E.regMusc = {}; E.sessoes = {}; E.regCorrida = {};
+    await Promise.all(['regMusc', 'sessoes', 'regCorrida'].map(salvar));
+    Timer.parar(); toast('Registros apagados'); telaMais();
+  });
   $('#f-restaurar').addEventListener('change', async (e) => {
     const f = e.target.files[0]; if (!f) return;
     try {
