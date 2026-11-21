@@ -2,7 +2,7 @@
    O app NÃO cria nem altera treinos: só importa o plano e registra a execução. */
 'use strict';
 
-const VERSAO_APP = '1.0.2';
+const VERSAO_APP = '1.0.3';
 const DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const DIAS_LONGOS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 
@@ -290,7 +290,11 @@ const Timer = {
   },
   desbloquearSom() { try { if (!this._audio) this._audio = new (window.AudioContext || window.webkitAudioContext)(); if (this._audio.state === 'suspended') this._audio.resume(); } catch (e) { /* sem áudio */ } },
   alertar() {
-    try { navigator.vibrate && navigator.vibrate([400, 150, 400, 150, 400]); } catch (e) { /* */ }
+    vibrar();
+    notificar('Descanso terminado', this.estado?.rotulo?.replace(/^Próxima: /, 'Próxima: ') || 'Hora da próxima série');
+    this.alertarSom();
+  },
+  alertarSom() {
     try {
       const ctx = this._audio; if (!ctx) return;
       [0, 0.35, 0.7].forEach((t) => {
@@ -304,6 +308,18 @@ const Timer = {
     } catch (e) { /* */ }
   }
 };
+
+/* ---------- avisos: vibração e notificação ---------- */
+const PADRAO_VIBRA = [500, 200, 500, 200, 500];
+function vibrar() { try { return !!(navigator.vibrate && navigator.vibrate(PADRAO_VIBRA)); } catch (e) { return false; } }
+async function notificar(titulo, corpo) {
+  try {
+    if (!E.config.notificar || !('Notification' in window) || Notification.permission !== 'granted') return false;
+    const reg = await navigator.serviceWorker.ready;
+    await reg.showNotification(titulo, { body: corpo, tag: 'timer', renotify: true, vibrate: PADRAO_VIBRA, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', requireInteraction: false });
+    return true;
+  } catch (e) { return false; }
+}
 
 /* ---------- manter a tela acesa durante o treino ---------- */
 const Tela = {
@@ -640,6 +656,10 @@ function telaMais() {
     <div class="card"><h3>Exportar registros (CSV)</h3>
       <div class="grade2"><button id="b-csv-m">Musculação</button><button id="b-csv-c">Corrida</button></div>
       <p class="mini">Mesmas colunas das abas Registro_* da planilha.</p></div>
+    <div class="card"><h3>Avisos do timer</h3>
+      <p class="mini">Notificação: ${'Notification' in window ? ({ granted: 'permitida', denied: 'bloqueada no Android', default: 'ainda não pedida' })[Notification.permission] : 'sem suporte'} · ${E.config.notificar ? 'ligada' : 'desligada'}</p>
+      <div class="grade2"><button id="b-vibra">Testar vibração</button><button id="b-notif">${E.config.notificar ? 'Testar notificação' : 'Ligar notificação'}</button></div>
+      <p class="mini">A notificação vibra pelo sistema do Android. Ajuda quando a vibração direta não funciona.</p></div>
     <div class="card"><h3>Configurações</h3>
       <p class="mini">Quanto a carga sobe quando você bate o topo da zona.</p>
       <div class="grade2">${Object.keys(CONFIG_PADRAO.incrementos).map((k) => `<div><label>${k} (+kg)</label><input inputmode="decimal" data-inc="${k}" value="${fmtNum(inc[k])}"></div>`).join('')}</div>
@@ -667,6 +687,16 @@ function telaMais() {
     } catch (err) { alert('Não consegui importar:\n\n' + err.message); e.target.value = ''; }
   });
   $('#b-backup').addEventListener('click', fazerBackup);
+  $('#b-vibra').addEventListener('click', () => { Timer.desbloquearSom(); const ok = vibrar(); Timer.alertarSom(); toast(ok ? 'Pedido de vibração enviado. Vibrou?' : 'Este navegador recusou a vibração', 3500); });
+  $('#b-notif').addEventListener('click', async () => {
+    if (!('Notification' in window)) { alert('Este navegador não tem notificações.'); return; }
+    let p = Notification.permission;
+    if (p === 'default') p = await Notification.requestPermission();
+    if (p !== 'granted') { alert('Notificação bloqueada. Libere em: Configurações do Android → Apps → Vida Fitness (ou Chrome) → Notificações.'); telaMais(); return; }
+    E.config.notificar = true; await salvar('config');
+    const ok = await notificar('Teste do Vida Fitness', 'Assim vai avisar o fim do descanso.');
+    toast(ok ? 'Notificação enviada' : 'Falhou ao enviar a notificação', 3000); telaMais();
+  });
   $('#b-zerar').addEventListener('click', async () => {
     if (!confirm('Apagar TODAS as séries e corridas registradas? O plano continua. Não dá para desfazer.')) return;
     if (!confirm('Confirma mesmo? Faça um backup antes se tiver dados reais.')) return;

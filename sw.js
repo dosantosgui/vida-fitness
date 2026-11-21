@@ -1,5 +1,5 @@
 // Service worker: guarda o app no celular para funcionar sem internet.
-const VERSAO = 'vf-v3';
+const VERSAO = 'vf-v4';
 const ARQUIVOS = [
   './',
   './index.html',
@@ -36,4 +36,12 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then((r) => r || fetch(e.request))
   );
+});
+
+// Tocar na notificação abre o app.
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((cs) => {
+    const c = cs[0]; if (c) return c.focus(); return self.clients.openWindow('./');
+  }));
 });
