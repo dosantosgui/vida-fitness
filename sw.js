@@ -1,5 +1,5 @@
 // Service worker: guarda o app no celular para funcionar sem internet.
-const VERSAO = 'vf-v4';
+const VERSAO = 'vf-v5';
 const ARQUIVOS = [
   './',
   './index.html',

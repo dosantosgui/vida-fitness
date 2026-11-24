@@ -2,7 +2,7 @@
    O app NÃO cria nem altera treinos: só importa o plano e registra a execução. */
 'use strict';
 
-const VERSAO_APP = '1.0.3';
+const VERSAO_APP = '1.0.4';
 const DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const DIAS_LONGOS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 
@@ -649,7 +649,7 @@ function telaMais() {
     <div class="card"><h3>Backup</h3>
       <p class="suave">${nM} séries e ${nC} corridas registradas. ${E.ultimoBackup ? `Último backup: ${new Date(E.ultimoBackup).toLocaleDateString('pt-BR')}.` : 'Nenhum backup ainda.'}</p>
       <button class="btn-primario btn-largo" id="b-backup">Fazer backup</button>
-      <label for="f-restaurar">Restaurar backup (.json)</label><input type="file" id="f-restaurar" accept=".json,application/json">
+      <label for="f-restaurar">Restaurar backup (.txt ou .json)</label><input type="file" id="f-restaurar" accept=".txt,.json,text/plain,application/json">
       <p class="mini">Guarde o backup fora do celular (Drive, email). Restaurar substitui tudo o que está no app.</p>
       <div style="height:8px"></div><button class="btn-perigo btn-largo" id="b-zerar">Apagar todos os registros</button>
       <p class="mini">Use para limpar treinos de teste. O plano fica.</p></div>
@@ -738,7 +738,8 @@ async function baixar(nome, conteudo, tipo) {
 }
 async function fazerBackup() {
   const b = { app: 'vida-fitness', versao: 1, versaoApp: VERSAO_APP, exportadoEm: new Date().toISOString(), plano: E.plano, config: E.config, regMusc: E.regMusc, sessoes: E.sessoes, regCorrida: E.regCorrida };
-  const ok = await baixar(`vida-fitness-backup-${hojeISO()}.json`, JSON.stringify(b), 'application/json');
+  // .txt: o Android só deixa compartilhar (Drive, email) alguns tipos de arquivo; .json não está entre eles.
+  const ok = await baixar(`vida-fitness-backup-${hojeISO()}.txt`, JSON.stringify(b), 'text/plain');
   if (ok) { E.ultimoBackup = new Date().toISOString(); await salvar('ultimoBackup'); toast('Backup gerado'); if (location.hash === '#mais') telaMais(); }
 }
 
